@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+import os
+from time import sleep
+
+import fire
+import jinja2
+import yaml
+from jinja2 import Template
+
+
+def on_change(filename, interval=1):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            timestamp = None
+            while True:
+                new_timestamp = os.stat(filename).st_mtime
+                if timestamp != new_timestamp:
+                    timestamp = new_timestamp
+                    func(*args, **kwargs)
+                sleep(interval)
+        return wrapper
+    return decorator
+
+
+def j2(filename, stdout=False):
+    run = on_change(filename)(_run)
+    run(filename, stdout)
+
+
+def _run(filename, stdout=False):
+    with open(filename, 'r') as f:
+        template = f.read()
+
+    context = {}
+    if template.startswith('---'):
+        __, frontmatter, template = template.split('---', 2)
+        template = template.split('\n', 1)[1]
+        try:
+            context = yaml.safe_load(frontmatter)
+        except yaml.composer.ComposerError as e:
+            print(e)
+
+    try:
+        result = Template(template).render(repr=repr, **context)
+    except (
+        TypeError,
+        jinja2.exceptions.TemplateSyntaxError,
+        jinja2.exceptions.UndefinedError,
+    ) as e:
+        print(e)
+        return
+    if stdout:
+        print(result)
+        return
+
+    file2 = filename.rsplit('.j2', 1)[0]
+    with open(file2, 'w') as f2:
+        f2.write(result)
+
+fire.Fire(j2)
