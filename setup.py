@@ -10,7 +10,7 @@ setup(
     license='MIT',
     install_requires=[
         'fire==0.1.3',
-        'Jinja2==2.10.3',
+        'Jinja2==2.11.3',
         'PyYAML==5.1.2',
     ],
     scripts=['j2'],
