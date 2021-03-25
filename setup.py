@@ -11,7 +11,7 @@ setup(
     install_requires=[
         'fire==0.1.3',
         'Jinja2==2.10.3',
-        'PyYAML==5.1.2',
+        'PyYAML==5.4',
     ],
     scripts=['j2'],
 )
